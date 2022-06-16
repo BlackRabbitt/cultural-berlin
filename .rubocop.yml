@@ -1,0 +1,15 @@
+require:
+  - rubocop-rails
+  - rubocop-rspec
+
+inherit_from: .rubocop_ignore.yml
+
+AllCops:
+  NewCops: enable
+  Exclude:
+    - 'bin/*'
+    - 'log/**/*'
+    - 'tmp/**/*'
+    - '.git/**/*'
+  Rails:
+    Enabled: true
