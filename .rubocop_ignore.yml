@@ -12,3 +12,18 @@ Style/Documentation:
 Metrics/MethodLength:
   Exclude:
     - 'db/migrate/20220618102824_create_events.rb'
+    - 'app/scrapers/application_scraper.rb'
+
+Metrics/BlockLength:
+  Exclude:
+    - 'lib/tasks/events_scraper.rake'
+
+RSpec/NestedGroups:
+  Exclude:
+    - 'spec/scrapers/gorki_events_scraper_spec.rb'
+    - 'spec/scrapers/visit_berlin_events_scraper_spec.rb'
+
+Metrics/AbcSize:
+  Exclude:
+    - 'db/migrate/20220618102824_create_events.rb'
+    - 'app/scrapers/application_scraper.rb'

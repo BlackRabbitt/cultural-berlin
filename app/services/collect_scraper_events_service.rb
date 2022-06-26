@@ -1,40 +1,38 @@
 # frozen_string_literal: true
 
-class CollectScrapperEventsService < ApplicationService
-  attr_reader :events, :failures
+class CollectScraperEventsService
+  attr_reader :events, :failures, :scraper
 
-  def initialize(source:, paginate: true, page_limit: 1)
-    @events = []
-
-    @source = source.to_sym
-    @paginate = paginate
-    @page_limit = page_limit
-
-    super
+  def initialize(scraper)
+    @scraper = scraper
   end
 
-  def call
-    scraper.perform(paginate: @paginate, page_limit: @page_limit) do |event_params|
+  def call(paginate: true, page_limit: 0, bulk: true) # rubocop:disable Metrics/MethodLength
+    @events = []
+    @failures = []
+
+    scraper.perform(paginate:, page_limit:) do |event_params|
       next if @events.detect { |evt| evt.event_id == event_params[:event_id] } # ignore duplicate events
 
       event = find_or_initialize_event(event_params)
 
       if event.valid?
+        event.save unless bulk
+
         @events << event
       else
         @failures << event.errors
       end
     end
 
-    bulk_save_to_db
+    bulk_save_to_db if bulk && @failures.blank?
   end
 
-  def find_or_intialize_event(event_params)
+  def find_or_initialize_event(event_params)
     present_time = Time.zone.now
 
-    event = Event.find_or_initialize_by(event_source: @source, event_id: event_params[:event_id])
+    event = Event.find_or_initialize_by(event_source: scraper.start_url.host, event_id: event_params[:event_id])
     event.assign_attributes(event_params)
-
     event.created_at = present_time if event.new_record?
     event.updated_at = present_time
 
@@ -42,12 +40,6 @@ class CollectScrapperEventsService < ApplicationService
   end
 
   private
-
-  def scraper
-    @scraper ||= {
-      visit_berlin: Events::VisitBerlinScraper.new
-    }[@source]
-  end
 
   def bulk_save_to_db
     # rubocop:disable Rails/SkipsModelValidations

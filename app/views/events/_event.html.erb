@@ -1,0 +1,69 @@
+<div class="card" id="<%= dom_id event %>">
+  <div class="row g-0">
+    <div class="col-md-2 p-3">
+      <% if event.image_url.present? %>
+        <%= image_tag(event.image_url, draggable: "true", id: "drag1", class: 'card-img-top') %>
+      <% end %>
+    </div>
+    <div class="col-md-10">
+      <div class="card-body">
+        <h5 class="card-title"><%= link_to event.title, event %></h5>
+        <h6 class="card-subtitle mb-2 text-muted"><strong>Category:</strong> <%= event.category || 'N/A' %></h6>
+        <p>
+          <strong>Event URL: </strong>
+          <%= link_to event.event_url, event.event_url, class: 'card-link' %>
+        </p>
+        <p>
+          <strong>Ticket URL: </strong>
+          <% if event.ticket_url %>
+            <%= link_to event.ticket_url, event.ticket_url, class: 'card-link' %>
+          <% end %>
+        </p>
+        <div class="row">
+          <div class="col-md-6">
+            <p>
+              <strong>Source:</strong>
+              <%= event.event_source %>
+            </p>
+            <div>
+              <strong>Description:</strong>
+              <%= simple_format(event.description) %>
+            </div>
+            <div>
+              <strong>Note:</strong>
+              <%= simple_format(event.note) %>
+            </div>
+
+          </div>
+
+          <div class="col-md-6">
+            <p>
+              <strong>Event from:</strong>
+              <%= event.event_from || 'N/A' %>
+            </p>
+
+            <p>
+              <strong>Event to:</strong>
+              <%= event.event_to || 'N/A' %>
+            </p>
+
+            <p>
+              <strong>Event time from:</strong>
+              <%= event.event_time_from&.localtime&.strftime('%I:%M%P') || 'N/A' %>
+            </p>
+
+            <p>
+              <strong>Event time to:</strong>
+              <%= event.event_time_to&.localtime&.strftime('%I:%M%P') || 'N/A' %>
+            </p>
+
+            <p>
+              <strong>Event location:</strong>
+              <%= event.event_location || 'N/A' %>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

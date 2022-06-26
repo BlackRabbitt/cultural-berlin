@@ -1,0 +1,32 @@
+<h1 class="text-primary">Events</h1>
+<%= form_with url: events_path, method: :get, data: { turbo_frame: 'event_list', turbo_action: 'advance' }, class: 'row g-3' do |f| %>
+  <div class="col-auto">
+    <%= f.label :query, 'Search by title:', class: 'form-label' %>
+    <%= f.text_field :query, value: params[:query], placeholder: 'Search ...', class: 'form-control mb-2 mr-sm-2' %>
+  </div>
+  <div class="col-auto">
+    <%= f.label :source, 'Filter by web sources:', class: 'form-label' %>
+    <%= f.select :source, options_for_select(Event.event_sources.keys, params[:source]), { include_blank: 'All Web Sources' }, class: 'form-control mb-2 mr-sm-2' %>
+  </div>
+  <div class="col-auto">
+    <%= f.label :event_date, 'Available events on:', class: 'form-label' %>
+    <%= f.date_field :event_date, value: params[:event_date], class: 'form-control mb-2 mr-sm-2' %>
+  </div>
+  <div class="col-auto">
+    <%= f.label :event_time, 'Available events on:', class: 'form-label' %>
+    <%= f.time_field :event_time, value: params[:event_time], class: 'form-control mb-2 mr-sm-2' %>
+  </div>
+  <div class="col-auto mt-auto">
+    <%= f.submit 'Search', class: 'btn btn-primary mb-2 mr-sm-2' %>
+    <%= link_to 'Clear', events_path, class: 'btn btn-danger mb-2 mr-sm-2' %>
+  </div>
+  </div>
+<% end %>
+
+<div id="events" class="mb-2">
+  <%= turbo_frame_tag 'event_list' do %>
+    <%= render partial: 'event', collection: @events %>
+
+    <%== pagy_bootstrap_nav(@pagy) %>
+  <% end %>
+</div>

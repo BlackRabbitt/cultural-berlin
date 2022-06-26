@@ -7,14 +7,12 @@ RSpec.describe ApplicationScraper do
   include ScraperHelper
 
   let(:url) { 'https://test.com' }
-  let!(:scraper) { described_class.new(url) }
+  let(:scraper) { described_class.new(url) }
 
-  before do
-    allow(scraper).to receive(:open_page).and_return test_response(scraper.start_url)
-  end
+  before { allow(scraper).to receive(:html_document) { |uri| test_response(uri) } }
 
   it { expect(scraper.instance_variable_get(:@start_url)).to eql(URI.parse(url)) }
-  it { expect(scraper.instance_variable_get(:@pages)).to eql([url]) }
+  it { expect(scraper.instance_variable_get(:@pages)).to eql([]) }
 
   it 'parse and return nokogiri html response' do
     expect(scraper.response.css('h1').text).to eql('Hello, this is test html rendered for domain: https://test.com')
@@ -30,42 +28,56 @@ RSpec.describe ApplicationScraper do
       before { scraper.perform }
 
       it 'fetch first page only' do
-        expect(scraper.pages).to eql(['https://test.com'])
-      end
-    end
-
-    context 'with paginate parameters without limit' do
-      before { scraper.perform(paginate: true) }
-
-      it 'follows all paginated links' do
-        expect(scraper.pages).to eql(['https://test.com', 'https://test.com?page=2'])
+        expect(scraper.pages.map(&:to_s)).to eql(['https://test.com'])
       end
     end
 
     context 'with paginate parameters with limit 1' do
-      before { scraper.perform(paginate: true, page_limit: 1) }
+      before do
+        scraper.perform(paginate: true, page_limit: 1)
+      end
 
       it 'fetch first page only' do
-        expect(scraper.pages).to eql(['https://test.com'])
+        expect(scraper.pages.map(&:to_s)).to eql(['https://test.com'])
+      end
+    end
+
+    context 'with paginate parameters without limit' do
+      before do
+        scraper.perform(paginate: true)
+      end
+
+      it 'follows all paginated links' do
+        expect(scraper.pages.map(&:to_s)).to eql(['https://test.com', 'https://test.com?page=2'])
       end
     end
 
     context 'with paginate parameters with limit 2' do
-      before { scraper.perform(paginate: true, page_limit: 2) }
+      before do
+        scraper.perform(paginate: true, page_limit: 2)
+      end
 
       it 'follows paginated link until limit is reached' do
-        expect(scraper.pages).to eql(['https://test.com', 'https://test.com?page=2'])
+        expect(scraper.pages.map(&:to_s)).to eql(['https://test.com', 'https://test.com?page=2'])
       end
     end
   end
 
   describe '.navigate' do
-    it 'navigates to provided query path' do
-      expect(scraper.navigate(query: 'page=2')).to eql('https://test.com?page=2')
+    it 'navigates to same page if no params' do
+      expect(scraper.navigate.to_s).to eql('https://test.com')
     end
 
-    it 'navigates to same page if no params' do
-      expect(scraper.navigate).to eql('https://test.com')
+    it 'navigates to provided query' do
+      expect(scraper.navigate(query: 'page=2').to_s).to eql('https://test.com?page=2')
+    end
+
+    it 'navigates to provided path' do
+      expect(scraper.navigate(path: '/en/programme/2022/06/all').to_s).to eql('https://test.com/en/programme/2022/06/all')
+    end
+
+    it 'navigates to provided path and query' do
+      expect(scraper.navigate(query: 'page=2', path: '/en/programme/2022/06/all').to_s).to eql('https://test.com/en/programme/2022/06/all?page=2')
     end
   end
 end
